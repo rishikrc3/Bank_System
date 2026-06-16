@@ -102,4 +102,15 @@ public class AccountService
             throw new NotransactionsException("No transactions found for this account", id);
         return account.Transactions;
     }
+
+    public Account GetAccountDetailsById(Guid id)
+    {
+        var account = FindAccount(id);
+        return account;
+    }
+
+    public IEnumerable<Account> GetAllAccounts()
+    {
+        return accounts.OrderByDescending(x => x.Balance);
+    }
 }

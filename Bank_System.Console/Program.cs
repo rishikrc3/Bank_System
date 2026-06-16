@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using Bank_System.Console.Extensions;
 using Models;
+
 
 class Bank_System
 {
@@ -12,15 +16,17 @@ class Bank_System
             Console.WriteLine("1. Create account");
             Console.WriteLine("2. Deposit");
             Console.WriteLine("3. Withdraw");
-            Console.WriteLine("4.  View Account & Transaction History");
-            Console.WriteLine("5. Exit");
+            Console.WriteLine("4.  View Transaction History");
+            Console.WriteLine("5.  View Account Details");
+            Console.WriteLine("6. View All Accounts");
+            Console.WriteLine("7. Exit");
             
             if(!int.TryParse(Console.ReadLine(), out int num))
             {
                 Console.WriteLine("Invalid option, try again");
                 continue;
             }
-            if(num == 5) 
+            if(num == 7) 
                 break;
             switch(num)
             {
@@ -38,6 +44,13 @@ class Bank_System
                 case 4:
                     bank_System.ViewTransactions(accountService);
                     break;
+                case 5:
+                    bank_System.ViewAccountDetailsById(accountService);
+                    break;
+                case 6:
+                    bank_System.ViewAllAccounts(accountService);
+                    break;
+                    
             }
         }
     }
@@ -174,6 +187,68 @@ class Bank_System
         catch(Exception ex)
         {
             Console.WriteLine($"Exception occured: {ex.Message}");
+        }
+    }
+
+    public void ViewAccountDetailsById(AccountService accountService)
+    {
+        try 
+        {
+            Console.WriteLine("Enter account ID:");
+            string accountId = Console.ReadLine();
+            if (!Guid.TryParse(accountId, out Guid parsedId))
+            {
+                Console.WriteLine("Invalid account ID format");
+                return;
+            }
+            var account = accountService.GetAccountDetailsById(parsedId);
+            Console.WriteLine("Account Details:");
+            Console.WriteLine("Account Holder Name: " + account.HolderName);
+            Console.WriteLine("Account Balance: " + account.Balance);
+            Console.WriteLine("Account Type: " + account.AccountType);
+            Console.WriteLine("Date Created: " + account.DateCreated);
+            Console.WriteLine("Amount Deposited: " + account.Transactions.GetTotalDeposits());
+            Console.WriteLine("Amount Withdrawn: " + account.Transactions.GetTotalWithdrawals());
+            Console.WriteLine("Total Transactions: " + account.Transactions.Count);
+            Console.WriteLine("Transaction History:");
+            List<TransactionHistory> trasactions = accountService.GetTransactionHistory(parsedId);
+            foreach (var transaction in trasactions)
+            {
+                Console.WriteLine(transaction);
+            }
+        }
+        catch (AccountNotFoundException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        catch (NotransactionsException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception occured: {ex.Message}");
+        }
+    }
+    public void ViewAllAccounts(AccountService accountService)
+    {
+        try
+        { 
+            var accounts = accountService.GetAllAccounts();
+            if (accounts == null)
+            {
+                Console.WriteLine("There are no accounts available.");
+                return;
+            }
+            Console.WriteLine("All Accounts:");
+            foreach (var account in accounts)
+            {
+                Console.WriteLine($"Account ID: {account.Id}, Holder Name: {account.HolderName}, Balance: {account.Balance}, Account Type: {account.AccountType}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception occurred: {ex.Message}");
         }
     }
 }
