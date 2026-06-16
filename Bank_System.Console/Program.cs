@@ -35,6 +35,9 @@ class Bank_System
                 case 3:
                     bank_System.WithdrawMoney(accountService);
                     break;    
+                case 4:
+                    bank_System.ViewTransactions(accountService);
+                    break;
             }
         }
     }
@@ -87,11 +90,16 @@ class Bank_System
             Console.WriteLine("Enter account ID:");
             string accountId = Console.ReadLine();
 
-            Console.WriteLine("Enter opening balance:");
+            Console.WriteLine("Enter money to be deposited");
             string updateBalance = Console.ReadLine();
             
-            var id2 = accountService.IncreaseAccountBalance(new Guid(accountId), updateBalance);
-            Console.WriteLine($"Balance updated successfully. ID: {id2}");
+            if(!Guid.TryParse(accountId, out Guid parsedId))
+            {
+                Console.WriteLine("Invalid account ID format");
+                return;
+            }
+            var updatedBalance = accountService.IncreaseAccountBalance(parsedId, updateBalance);
+            Console.WriteLine($"Balance after updating: {updatedBalance}");
         }
         catch(AccountNotFoundException ex)
         {
@@ -114,15 +122,52 @@ class Bank_System
             Console.WriteLine("Enter account ID:");
             string accountId = Console.ReadLine();
 
-            Console.WriteLine("Enter opening balance:");
+            Console.WriteLine("Enter money to be withdrawn");
             string updateBalance = Console.ReadLine();
-            var id  = accountService.DecreaseAccountBalance(new Guid(accountId), updateBalance);
+            if(!Guid.TryParse(accountId, out Guid parsedId))
+            {
+                Console.WriteLine("Invalid account ID format");
+                return;
+            }
+            var balanceAfterUpdating  = accountService.DecreaseAccountBalance(parsedId, updateBalance);
+            Console.WriteLine($"Balance after updating: {balanceAfterUpdating}");
         }
         catch(AccountNotFoundException ex)
         {
             Console.WriteLine(ex.Message);
         }
         catch(AccountBalanceException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine($"Exception occured: {ex.Message}");
+        }
+    }
+
+    public void ViewTransactions(AccountService accountService)
+    {
+        try
+        {
+            Console.WriteLine("Enter account ID:");
+            string accountId = Console.ReadLine();
+            if(!Guid.TryParse(accountId, out Guid parsedId))
+            {
+                Console.WriteLine("Invalid account ID format");
+                return;
+            }
+            List<TransactionHistory> trasactions = accountService.GetTransactionHistory(parsedId);
+            foreach(var transaction in trasactions)
+            {
+                Console.WriteLine(transaction);
+            }
+        }
+        catch(AccountNotFoundException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        catch(NotransactionsException ex)
         {
             Console.WriteLine(ex.Message);
         }

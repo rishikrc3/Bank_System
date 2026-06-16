@@ -1,5 +1,4 @@
 using Models;
-
 public class AccountService
 {
     List<Account> accounts = new List<Account>();
@@ -11,6 +10,11 @@ public class AccountService
             throw new AccountNotFoundException("Account does not exist", id);
         }
         return account;
+    }
+
+    private void UpdateTransactionHistory(TransactionHistory transaction, Account account)
+    {
+        account.Transactions.Add(transaction);
     }
     private decimal ValidateAccountCreationInput(AccountCreatorDTO accountCreatorDTO)
     {
@@ -56,15 +60,23 @@ public class AccountService
         accounts.Add(account);
         return account.Id;
     }
-    public Guid IncreaseAccountBalance(Guid id, String bal)
+    public decimal IncreaseAccountBalance(Guid id, string bal)
     {
         decimal balance = ValidateAccountBalanceUpdateDetials(id,bal);
         var account = FindAccount(id);
         account.Balance+=balance;
-        return id;
+        TransactionHistory transaction = new TransactionHistory
+        {
+            Amount = balance,
+            TransactionType = TransactionType.Deposit,
+            Timestamp = DateTimeOffset.UtcNow,
+            Balance = account.Balance
+        };
+        UpdateTransactionHistory(transaction, account);
+        return account.Balance;
     }
 
-    public Guid DecreaseAccountBalance(Guid id, String bal)
+    public decimal DecreaseAccountBalance(Guid id, string bal)
     { 
         decimal balance = ValidateAccountBalanceUpdateDetials(id,bal);
         var account = FindAccount(id);
@@ -72,6 +84,22 @@ public class AccountService
         if(balance > account.Balance)
             throw new AccountBalanceException($"Insufficient funds. Shortfall: {balance - account.Balance}", bal);
         account.Balance-=balance;
-        return id;
+        TransactionHistory transaction = new TransactionHistory
+        {
+            Amount = balance,
+            TransactionType = TransactionType.Withdraw,
+            Timestamp = DateTimeOffset.UtcNow,
+            Balance = account.Balance
+        };
+        UpdateTransactionHistory(transaction, account);
+        return account.Balance;
+    }
+
+    public List<TransactionHistory> GetTransactionHistory(Guid id)
+    {
+        var account = FindAccount(id);
+        if(!account.Transactions.Any())
+            throw new NotransactionsException("No transactions found for this account", id);
+        return account.Transactions;
     }
 }
