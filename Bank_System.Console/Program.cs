@@ -269,7 +269,7 @@ class Bank_System
             sb.AppendLine($"Total accounts: {accountsData.TotalAccounts}");
             sb.AppendLine($"Savings accounts: {accountsData.SavingsAccounts}");
             sb.AppendLine($"Current accounts: {accountsData.CurrentAccounts}");
-            sb.AppendLine($"Total balance: {accountsData.TotalBalance:C}");
+            sb.AppendLine($"Total balance: {accountsData.TotalBalance}");
             sb.AppendLine($"Highest balance account: {accountsData.HighestBalanceId}");
             sb.AppendLine($"Lowest balance account: {accountsData.LowestBalanceId}");
             sb.AppendLine($"Total transactions: {accountsData.TotalTransactions}");
