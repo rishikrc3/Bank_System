@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using Bank_System.Console.Extensions;
+using Extensions;
 using Models;
 
 
