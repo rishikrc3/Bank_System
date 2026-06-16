@@ -1,8 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
+﻿using Exceptions;
 using Extensions;
 using Models;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Text;
 
 
 class Bank_System
@@ -19,14 +21,15 @@ class Bank_System
             Console.WriteLine("4.  View Transaction History");
             Console.WriteLine("5.  View Account Details");
             Console.WriteLine("6. View All Accounts");
-            Console.WriteLine("7. Exit");
+            Console.WriteLine("7. View Fianancial Model");
+            Console.WriteLine("8. Exit");
             
             if(!int.TryParse(Console.ReadLine(), out int num))
             {
                 Console.WriteLine("Invalid option, try again");
                 continue;
             }
-            if(num == 7) 
+            if(num == 8) 
                 break;
             switch(num)
             {
@@ -50,7 +53,11 @@ class Bank_System
                 case 6:
                     bank_System.ViewAllAccounts(accountService);
                     break;
-                    
+                case 7:
+                    bank_System.ViewFinancialModel(accountService);
+                    break;
+
+
             }
         }
     }
@@ -249,6 +256,32 @@ class Bank_System
         catch (Exception ex)
         {
             Console.WriteLine($"Exception occurred: {ex.Message}");
+        }
+    }
+
+    public void ViewFinancialModel(AccountService accountService)
+    {
+        try
+        {
+            var accountsData = accountService.GetFinancialReport();
+            Console.WriteLine("Financial Report:");
+            var sb = new StringBuilder();
+            sb.AppendLine($"Total accounts: {accountsData.TotalAccounts}");
+            sb.AppendLine($"Savings accounts: {accountsData.SavingsAccounts}");
+            sb.AppendLine($"Current accounts: {accountsData.CurrentAccounts}");
+            sb.AppendLine($"Total balance: {accountsData.TotalBalance:C}");
+            sb.AppendLine($"Highest balance account: {accountsData.HighestBalanceId}");
+            sb.AppendLine($"Lowest balance account: {accountsData.LowestBalanceId}");
+            sb.AppendLine($"Total transactions: {accountsData.TotalTransactions}");
+            Console.WriteLine(sb.ToString());
+        }
+        catch(NoAccountsException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
 }
