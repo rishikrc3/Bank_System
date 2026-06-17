@@ -16,12 +16,10 @@ namespace Repository
         {
             _items.Add(entity);
         }
-
         public void Delete(Guid id)
         {
             _items.RemoveAll(x => x.Id == id);
         }
-
         public IEnumerable<T> GetAll()
         {
             return _items;
