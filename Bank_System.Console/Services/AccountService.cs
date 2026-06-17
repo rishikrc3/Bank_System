@@ -59,6 +59,8 @@ public class AccountService
             DateCreated = accountDTO.DateCreated 
         };
         accounts.Add(account);
+        FileRepository fileRepository = new FileRepository();
+        fileRepository.AddUserAccount(account);
         return account.Id;
     }
     public decimal IncreaseAccountBalance(Guid id, string bal)
