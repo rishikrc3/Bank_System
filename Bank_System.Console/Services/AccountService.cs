@@ -3,6 +3,11 @@ using Models;
 public class AccountService
 {
     List<Account> accounts = new List<Account>();
+    private readonly IRepository<Account> _repository;
+    public AccountService(IRepository<Account>repository)
+    {
+        _repository = repository;
+    }
     private Account FindAccount(Guid id)
     {
         var account = accounts.FirstOrDefault(x=>x.Id==id);
@@ -58,52 +63,26 @@ public class AccountService
             AccountType = accountDTO.AccountType,
             DateCreated = accountDTO.DateCreated 
         };
-        accounts.Add(account);
-        FileRepository fileRepository = new FileRepository();
-        fileRepository.AddUserAccount(account);
-        return account.Id;
+        var id = _repository.AddUserAccount(account);
+        return id;
     }
     public decimal IncreaseAccountBalance(Guid id, string bal)
     {
         decimal balance = ValidateAccountBalanceUpdateDetials(id,bal);
-        var account = FindAccount(id);
-        account.Balance+=balance;
-        TransactionHistory transaction = new TransactionHistory
-        {
-            Amount = balance,
-            TransactionType = TransactionType.Deposit,
-            Timestamp = DateTimeOffset.UtcNow,
-            Balance = account.Balance
-        };
-        UpdateTransactionHistory(transaction, account);
-        return account.Balance;
+        var newBalance = _repository.IncreaseAccountBalance(id, balance);
+        return newBalance;
     }
 
     public decimal DecreaseAccountBalance(Guid id, string bal)
     { 
         decimal balance = ValidateAccountBalanceUpdateDetials(id,bal);
-        var account = FindAccount(id);
-        //exception handler here
-        if(balance > account.Balance)
-            throw new AccountBalanceException($"Insufficient funds. Shortfall: {balance - account.Balance}", bal);
-        account.Balance-=balance;
-        TransactionHistory transaction = new TransactionHistory
-        {
-            Amount = balance,
-            TransactionType = TransactionType.Withdraw,
-            Timestamp = DateTimeOffset.UtcNow,
-            Balance = account.Balance
-        };
-        UpdateTransactionHistory(transaction, account);
-        return account.Balance;
+        var newBalance = _repository.DecreaseAccountBalance(id, balance);
+        return newBalance;
     }
 
     public List<TransactionHistory> GetTransactionHistory(Guid id)
     {
-        var account = FindAccount(id);
-        if(!account.Transactions.Any())
-            throw new NotransactionsException("No transactions found for this account", id);
-        return account.Transactions;
+        return _repository.GetTransactionHistory(id);
     }
 
     public Account GetAccountDetailsById(Guid id)
@@ -111,6 +90,7 @@ public class AccountService
         var account = FindAccount(id);
         return account;
     }
+    //start here
 
     public IEnumerable<Account> GetAllAccounts()
     {

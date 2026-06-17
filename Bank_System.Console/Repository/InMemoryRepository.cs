@@ -11,9 +11,10 @@ namespace Bank_System.Console.Repository
     public class InMemoryAccountRepository : IRepository<Account>
     {
         List<Account> accounts = new List<Account>();
-        public void AddUserAccount(Account account)
+        public Guid AddUserAccount(Account account)
         {
             accounts.Add(account);
+            return account.Id;
         }
         public Account GetAccountDetailsById(Guid id)
         {
@@ -27,10 +28,6 @@ namespace Bank_System.Console.Repository
         public decimal IncreaseAccountBalance(Guid id, decimal amount)
         {
             var account = GetAccountDetailsById(id);
-            if (account == null)
-            {
-                throw new AccountNotFoundException("Account does not exist", id);
-            }
             account.Balance += amount;
             return account.Balance;
         }
@@ -45,7 +42,7 @@ namespace Bank_System.Console.Repository
             account.Balance -= amount;
             return account.Balance;
         }
-        public IEnumerable<Account > GetAllAccounts()
+        public IEnumerable<Account> GetAllAccounts()
         {
            return accounts.OrderByDescending(x => x.Balance);
         }
@@ -60,10 +57,6 @@ namespace Bank_System.Console.Repository
 
         public FinancialModel GetFinancialReport()
         {
-            if (accounts == null)
-            {
-                throw new NoAccountsException("No accounts exist in the system.");
-            }
             var totalAccoutns = accounts.Count;
             var savingsAccounts = accounts.Count(x => x.AccountType == AccountType.Savings);
             var currentAccounts = accounts.Count(x => x.AccountType == AccountType.Current);
@@ -82,6 +75,10 @@ namespace Bank_System.Console.Repository
                 LowestBalanceId = lowestBalanceId,
                 TotalTransactions = totalTansactions
             };
+        }
+        public void UpdateTransactionHistory(TransactionHistory transaction, Account account)
+        {
+            account.Transactions.Add(transaction);
         }
     }
 }
