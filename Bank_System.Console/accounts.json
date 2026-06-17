@@ -1,0 +1,26 @@
+[
+  {
+    "Id": "f6297758-c5b4-436e-acf0-c5ac6eceb65a",
+    "HolderName": "Rishik",
+    "Balance": 123123,
+    "AccountType": 0,
+    "DateCreated": "0001-01-01T00:00:00+00:00",
+    "Transactions": []
+  },
+  {
+    "Id": "44694edb-8ce5-4323-bd3a-c309094cc0ef",
+    "HolderName": "Sis",
+    "Balance": 1231231,
+    "AccountType": 0,
+    "DateCreated": "0001-01-01T00:00:00+00:00",
+    "Transactions": []
+  },
+  {
+    "Id": "ae2b37b3-7c91-4291-b5da-a60c1c2e8bd5",
+    "HolderName": "R2",
+    "Balance": 1312312,
+    "AccountType": 0,
+    "DateCreated": "0001-01-01T00:00:00+00:00",
+    "Transactions": []
+  }
+]

@@ -48,18 +48,15 @@ public class FileRepository <T>: IDisposable, IRepository<T> where T : IEntity
     {
         _items.Add(item);
         SaveChanges();
-    }
-
+    }//
     public T? GetById(Guid id)
     {
         return _items.FirstOrDefault(x => x.Id == id);
     }
-
     public IEnumerable<T> GetAll()
     {
         return _items;
     }
-
     public void Delete(Guid id)
     {
         _items.RemoveAll(x => x.Id == id);
