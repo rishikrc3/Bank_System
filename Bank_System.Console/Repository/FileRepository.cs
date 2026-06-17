@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Interfaces;
-public class FileRepository <T>: IDisposable where T : IEntity 
+public class FileRepository <T>: IDisposable, IRepository<T> where T : IEntity 
 {
     private readonly string _filePath;
     private List<T> _items;
@@ -37,13 +37,32 @@ public class FileRepository <T>: IDisposable where T : IEntity
     }
     private void SaveChanges()
     {
-        string json = JsonSerializer.Serialize(_items);
+        var options = new JsonSerializerOptions
+        {
+            WriteIndented = true
+        };
+        string json = JsonSerializer.Serialize(_items, options);
         File.WriteAllText(_filePath, json);
     }
     public void Add(T item)
     {
         _items.Add(item);
         SaveChanges();
+    }
+
+    public T? GetById(Guid id)
+    {
+        return _items.FirstOrDefault(x => x.Id == id);
+    }
+
+    public IEnumerable<T> GetAll()
+    {
+        return _items;
+    }
+
+    public void Delete(Guid id)
+    {
+        _items.RemoveAll(x => x.Id == id);
     }
     ~FileRepository()
     {
