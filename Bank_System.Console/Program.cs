@@ -9,7 +9,7 @@ class Bank_System
     {
         string path = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "accounts.json");
         IRepository<Account> repository = new FileRepository<Account>(path);
-        AccountService accountService = new AccountService(repository);
+        IAccountService accountService = new AccountService(repository);
         Bank_System bank_System = new Bank_System();
         while(true)
         {
@@ -57,7 +57,7 @@ class Bank_System
             }
         }
     }
-    private void CreateUserAccount(AccountService accountService)
+    private void CreateUserAccount(IAccountService accountService)
     {
         try
         {
@@ -99,7 +99,7 @@ class Bank_System
         }
     }
 
-    private void DepositMoney(AccountService accountService)
+    private void DepositMoney(IAccountService accountService)
     {
         try
         {
@@ -131,7 +131,7 @@ class Bank_System
         }
     }
 
-    private void WithdrawMoney(AccountService accountService)
+    private void WithdrawMoney(IAccountService accountService)
     {
         try
         {
@@ -162,7 +162,7 @@ class Bank_System
         }
     }
 
-    public void ViewTransactions(AccountService accountService)
+    public void ViewTransactions(IAccountService accountService)
     {
         try
         {
@@ -193,7 +193,7 @@ class Bank_System
         }
     }
 
-    public void ViewAccountDetailsById(AccountService accountService)
+    public void ViewAccountDetailsById(IAccountService accountService)
     {
         try 
         {
@@ -233,7 +233,7 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-    public void ViewAllAccounts(AccountService accountService)
+    public void ViewAllAccounts(IAccountService accountService)
     {
         try
         { 
@@ -255,7 +255,7 @@ class Bank_System
         }
     }
 
-    public void ViewFinancialModel(AccountService accountService)
+    public void ViewFinancialModel(IAccountService accountService)
     {
         try
         {
