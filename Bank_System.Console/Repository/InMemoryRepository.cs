@@ -11,10 +11,9 @@ namespace Repository
     public class InMemoryAccountRepository : IRepository<Account>
     {
         List<Account> accounts = new List<Account>();
-        public Guid AddUserAccount(Account account)
+        public void Add(Account entity)
         {
-            accounts.Add(account);
-            return account.Id;
+            accounts.Add(entity);
         }
         public Account GetAccountDetailsById(Guid id)
         {

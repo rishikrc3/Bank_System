@@ -12,7 +12,7 @@ class Bank_System
 {
     public static void Main(String []args)
     {
-        IRepository<Account>repository = new InMemoryAccountRepository();
+        IRepository<Account>repository = new InMemoryRepository<Account>();
         AccountService accountService = new AccountService(repository);
         Bank_System bank_System = new Bank_System();
         while(true)

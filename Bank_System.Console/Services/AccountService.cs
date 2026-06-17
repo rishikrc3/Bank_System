@@ -2,13 +2,11 @@ using Exceptions;
 using Models;
 public class AccountService
 {
-    //List<Account> accounts = new List<Account>();
     private readonly IRepository<Account> _repository;
     public AccountService(IRepository<Account>repository)
     {
         _repository = repository;
     }
-
     private decimal ValidateAccountCreationInput(AccountCreatorDTO accountCreatorDTO)
     {
         if(string.IsNullOrWhiteSpace(accountCreatorDTO.HolderName))
@@ -50,42 +48,103 @@ public class AccountService
             AccountType = accountDTO.AccountType,
             DateCreated = accountDTO.DateCreated 
         };
-        var id = _repository.AddUserAccount(account);
-        return id;
+        _repository.Add(account);
+        return account.Id;
     }
     public decimal IncreaseAccountBalance(Guid id, string bal)
     {
         decimal balance = ValidateAccountBalanceUpdateDetials(id,bal);
-        var newBalance = _repository.IncreaseAccountBalance(id, balance);
-        return newBalance;
+        var account = _repository.GetById(id);
+        if (account == null) 
+        {
+            throw new ArgumentException($"Account with ID {id} not found.", nameof(id));
+        }
+        account.Balance += balance;
+        TransactionHistory transaction = new TransactionHistory
+        {
+            Amount = balance,
+            TransactionType = TransactionType.Deposit,
+            Timestamp = DateTimeOffset.UtcNow,
+            Balance = account.Balance
+        };
+        account.Transactions.Add(transaction);
+        return account.Balance;
     }
 
     public decimal DecreaseAccountBalance(Guid id, string bal)
     { 
         decimal balance = ValidateAccountBalanceUpdateDetials(id,bal);
-        var newBalance = _repository.DecreaseAccountBalance(id, balance);
-        return newBalance;
+        var account = _repository.GetById(id);
+        if (account == null)
+        {
+            throw new ArgumentException($"Account with ID {id} not found.", nameof(id));
+        }
+        if (account.Balance < balance)
+        {
+            throw new AccountBalanceException($"Insufficient funds. Shortfall: {balance - account.Balance}", account.Balance.ToString());
+        }
+        account.Balance -= balance;
+        TransactionHistory transaction = new TransactionHistory
+        {
+            Amount = balance,
+            TransactionType = TransactionType.Withdraw,
+            Timestamp = DateTimeOffset.UtcNow,
+            Balance = account.Balance
+        };
+        account.Transactions.Add(transaction);
+        return account.Balance;
     }
 
     public List<TransactionHistory> GetTransactionHistory(Guid id)
     {
-        return _repository.GetTransactionHistory(id);
+        var account  = _repository.GetById(id);
+        if (account == null)
+        {
+            throw new ArgumentException($"Account with ID {id} not found.", nameof(id));
+        }
+        return account.Transactions;
     }
 
     public Account GetAccountDetailsById(Guid id)
     {
-        var account = _repository.GetAccountDetailsById(id);
+        var account = _repository.GetById(id);
+        if (account == null)
+        {
+            throw new ArgumentException($"Account with ID {id} not found.", nameof(id));
+        }
         return account;
     }
     //start here
 
     public IEnumerable<Account> GetAllAccounts()
     {
-        return _repository.GetAllAccounts();
+        return _repository.GetAll();
     }
 
     public FinancialModel GetFinancialReport()
     {
-        return _repository.GetFinancialReport();
+        var accounts = _repository.GetAll().ToList();
+        if(accounts == null || accounts.Count == 0)
+        {
+            throw new ArgumentException($"No accounts found.");
+        }
+        var totalAccoutns = accounts.Count;
+        var savingsAccounts = accounts.Count(x => x.AccountType == AccountType.Savings);
+        var currentAccounts = accounts.Count(x => x.AccountType == AccountType.Current);
+        var totalBalance = accounts.Sum(x => x.Balance);
+        var highestBalanceId = accounts.MaxBy(x => x.Balance).Id;
+        var lowestBalanceId = accounts.MinBy(x => x.Balance).Id;
+
+        var totalTansactions = accounts.Sum(x => x.Transactions.Count);
+        return new FinancialModel
+        {
+            TotalAccounts = totalAccoutns,
+            SavingsAccounts = savingsAccounts,
+            CurrentAccounts = currentAccounts,
+            TotalBalance = totalBalance,
+            HighestBalanceId = highestBalanceId,
+            LowestBalanceId = lowestBalanceId,
+            TotalTransactions = totalTansactions
+        };
     }
 }

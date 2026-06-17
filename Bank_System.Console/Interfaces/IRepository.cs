@@ -1,13 +1,11 @@
 using System.ComponentModel;
+using Interfaces;
 using Models;
 
-public interface IRepository<T> where T: class
+public interface IRepository<T> where T: IEntity
 {
-    Guid AddUserAccount(T account);
-    IEnumerable<T> GetAllAccounts();
-    T GetAccountDetailsById(Guid id);
-    decimal IncreaseAccountBalance(Guid id, decimal amount);
-    decimal DecreaseAccountBalance(Guid id, decimal amount);
-    List<TransactionHistory> GetTransactionHistory(Guid id);
-    FinancialModel GetFinancialReport();
+    void Add(T entity);
+    T? GetById(Guid id);
+    IEnumerable<T> GetAll();
+    void Delete(Guid id);
 }
