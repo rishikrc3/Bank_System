@@ -1,10 +1,10 @@
 using System.ComponentModel;
 using Models;
 
-public interface IRepository
+public interface IRepository<T> where T: class
 {
-    void AddUserAccount(Account account);
-    IEnumerable<Account> GetAllAccounts();
-    Account GetAccountDetailsById(Guid id);
-    void DeleteUserAccount(Guid id);
+    void AddUserAccount(T account);
+    IEnumerable<T> GetAllAccounts();
+    T GetAccountDetailsById(Guid id);
+   
 }

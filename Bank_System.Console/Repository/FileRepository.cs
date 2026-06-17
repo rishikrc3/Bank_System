@@ -2,9 +2,8 @@ using System.Data.Common;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Models;
-public class FileRepository : IRepository
+public class FileRepository : IRepository<Account>
 {
-
     public void AddUserAccount(Account account)
     {
         var filePath = "data.json";
