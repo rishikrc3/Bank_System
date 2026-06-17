@@ -2,20 +2,10 @@ using Exceptions;
 using Models;
 public class AccountService
 {
-    List<Account> accounts = new List<Account>();
-    private Account FindAccount(Guid id)
+    private readonly IRepository<Account> _repository;
+    public AccountService(IRepository<Account>repository)
     {
-        var account = accounts.FirstOrDefault(x=>x.Id==id);
-        if(account==null)
-        {
-            throw new AccountNotFoundException("Account does not exist", id);
-        }
-        return account;
-    }
-
-    private void UpdateTransactionHistory(TransactionHistory transaction, Account account)
-    {
-        account.Transactions.Add(transaction);
+        _repository = repository;
     }
     private decimal ValidateAccountCreationInput(AccountCreatorDTO accountCreatorDTO)
     {
@@ -58,16 +48,18 @@ public class AccountService
             AccountType = accountDTO.AccountType,
             DateCreated = accountDTO.DateCreated 
         };
-        accounts.Add(account);
-        FileRepository fileRepository = new FileRepository();
-        fileRepository.AddUserAccount(account);
+        _repository.Add(account);
         return account.Id;
     }
     public decimal IncreaseAccountBalance(Guid id, string bal)
     {
         decimal balance = ValidateAccountBalanceUpdateDetials(id,bal);
-        var account = FindAccount(id);
-        account.Balance+=balance;
+        var account = _repository.GetById(id);
+        if (account == null) 
+        {
+            throw new ArgumentException($"Account with ID {id} not found.", nameof(id));
+        }
+        account.Balance += balance;
         TransactionHistory transaction = new TransactionHistory
         {
             Amount = balance,
@@ -75,18 +67,23 @@ public class AccountService
             Timestamp = DateTimeOffset.UtcNow,
             Balance = account.Balance
         };
-        UpdateTransactionHistory(transaction, account);
+        account.Transactions.Add(transaction);
         return account.Balance;
     }
 
     public decimal DecreaseAccountBalance(Guid id, string bal)
     { 
         decimal balance = ValidateAccountBalanceUpdateDetials(id,bal);
-        var account = FindAccount(id);
-        //exception handler here
-        if(balance > account.Balance)
-            throw new AccountBalanceException($"Insufficient funds. Shortfall: {balance - account.Balance}", bal);
-        account.Balance-=balance;
+        var account = _repository.GetById(id);
+        if (account == null)
+        {
+            throw new ArgumentException($"Account with ID {id} not found.", nameof(id));
+        }
+        if (account.Balance < balance)
+        {
+            throw new AccountBalanceException($"Insufficient funds. Shortfall: {balance - account.Balance}", account.Balance.ToString());
+        }
+        account.Balance -= balance;
         TransactionHistory transaction = new TransactionHistory
         {
             Amount = balance,
@@ -94,34 +91,42 @@ public class AccountService
             Timestamp = DateTimeOffset.UtcNow,
             Balance = account.Balance
         };
-        UpdateTransactionHistory(transaction, account);
+        account.Transactions.Add(transaction);
         return account.Balance;
     }
 
     public List<TransactionHistory> GetTransactionHistory(Guid id)
     {
-        var account = FindAccount(id);
-        if(!account.Transactions.Any())
-            throw new NotransactionsException("No transactions found for this account", id);
+        var account  = _repository.GetById(id);
+        if (account == null)
+        {
+            throw new ArgumentException($"Account with ID {id} not found.", nameof(id));
+        }
         return account.Transactions;
     }
 
     public Account GetAccountDetailsById(Guid id)
     {
-        var account = FindAccount(id);
+        var account = _repository.GetById(id);
+        if (account == null)
+        {
+            throw new ArgumentException($"Account with ID {id} not found.", nameof(id));
+        }
         return account;
     }
+    
 
     public IEnumerable<Account> GetAllAccounts()
     {
-        return accounts.OrderByDescending(x => x.Balance);
+        return _repository.GetAll();
     }
 
     public FinancialModel GetFinancialReport()
     {
-        if (accounts == null)
+        var accounts = _repository.GetAll().ToList();
+        if(accounts == null || accounts.Count == 0)
         {
-            throw new NoAccountsException("No accounts exist in the system.");
+            throw new ArgumentException($"No accounts found.");
         }
         var totalAccoutns = accounts.Count;
         var savingsAccounts = accounts.Count(x => x.AccountType == AccountType.Savings);
@@ -131,7 +136,8 @@ public class AccountService
         var lowestBalanceId = accounts.MinBy(x => x.Balance).Id;
 
         var totalTansactions = accounts.Sum(x => x.Transactions.Count);
-        return new FinancialModel { 
+        return new FinancialModel
+        {
             TotalAccounts = totalAccoutns,
             SavingsAccounts = savingsAccounts,
             CurrentAccounts = currentAccounts,

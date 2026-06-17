@@ -1,10 +1,11 @@
 using System.ComponentModel;
+using Interfaces;
 using Models;
 
-public interface IRepository
+public interface IRepository<T> where T: IEntity
 {
-    void AddUserAccount(Account account);
-    IEnumerable<Account> GetAllAccounts();
-    Account GetAccountDetailsById(Guid id);
-    void DeleteUserAccount(Guid id);
+    void Add(T entity);
+    T? GetById(Guid id);
+    IEnumerable<T> GetAll();
+    void Delete(Guid id);
 }

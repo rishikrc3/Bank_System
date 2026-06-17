@@ -1,17 +1,15 @@
 ﻿using Exceptions;
 using Extensions;
 using Models;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
+using Repository;
 using System.Text;
-
-
 class Bank_System
 {
     public static void Main(String []args)
     {
-        AccountService accountService = new AccountService();
+        string path = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "accounts.json");
+        IRepository<Account> repository = new FileRepository<Account>(path);
+        AccountService accountService = new AccountService(repository);
         Bank_System bank_System = new Bank_System();
         while(true)
         {
@@ -56,8 +54,6 @@ class Bank_System
                 case 7:
                     bank_System.ViewFinancialModel(accountService);
                     break;
-
-
             }
         }
     }

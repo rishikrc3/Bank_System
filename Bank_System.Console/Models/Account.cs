@@ -1,8 +1,11 @@
+using Interfaces;
+
 namespace Models
 {
-    public class Account
+    public class Account : IEntity
     {
-        public Guid Id {get; init;}
+
+        public Guid Id { get; set; }
         public string HolderName {get; set;} = string.Empty;
         public decimal Balance  {get; set;} = 0;
         public AccountType AccountType {get;set;}
