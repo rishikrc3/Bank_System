@@ -2,7 +2,7 @@ using System.Data.Common;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Models;
-public class FileRepository : IRepository<Account>
+public class FileRepository 
 {
     public void AddUserAccount(Account account)
     {

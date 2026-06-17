@@ -10,6 +10,4 @@ public interface IRepository<T> where T: class
     decimal DecreaseAccountBalance(Guid id, decimal amount);
     List<TransactionHistory> GetTransactionHistory(Guid id);
     FinancialModel GetFinancialReport();
-    void UpdateTransactionHistory(TransactionHistory transaction, T account);
-
 }

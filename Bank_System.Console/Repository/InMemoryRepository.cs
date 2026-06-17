@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Bank_System.Console.Repository
+namespace Repository
 {
     public class InMemoryAccountRepository : IRepository<Account>
     {
@@ -29,6 +29,14 @@ namespace Bank_System.Console.Repository
         {
             var account = GetAccountDetailsById(id);
             account.Balance += amount;
+            TransactionHistory transaction = new TransactionHistory
+            {
+                Amount = amount,
+                TransactionType = TransactionType.Deposit,
+                Timestamp = DateTimeOffset.UtcNow,
+                Balance = account.Balance
+            };
+            UpdateTransactionHistory(transaction, account);
             return account.Balance;
         }
 
@@ -40,6 +48,14 @@ namespace Bank_System.Console.Repository
                 throw new AccountBalanceException($"Insufficient funds. Shortfall: {amount - account.Balance}", account.Balance.ToString());
             }
             account.Balance -= amount;
+            TransactionHistory transaction = new TransactionHistory
+            {
+                Amount = amount,
+                TransactionType = TransactionType.Withdraw,
+                Timestamp = DateTimeOffset.UtcNow,
+                Balance = account.Balance
+            };
+            UpdateTransactionHistory(transaction, account);
             return account.Balance;
         }
         public IEnumerable<Account> GetAllAccounts()
@@ -76,7 +92,7 @@ namespace Bank_System.Console.Repository
                 TotalTransactions = totalTansactions
             };
         }
-        public void UpdateTransactionHistory(TransactionHistory transaction, Account account)
+        private void UpdateTransactionHistory(TransactionHistory transaction, Account account)
         {
             account.Transactions.Add(transaction);
         }

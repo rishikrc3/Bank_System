@@ -1,6 +1,7 @@
 ﻿using Exceptions;
 using Extensions;
 using Models;
+using Repository;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
@@ -11,7 +12,8 @@ class Bank_System
 {
     public static void Main(String []args)
     {
-        AccountService accountService = new AccountService();
+        IRepository<Account>repository = new InMemoryAccountRepository();
+        AccountService accountService = new AccountService(repository);
         Bank_System bank_System = new Bank_System();
         while(true)
         {

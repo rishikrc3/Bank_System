@@ -2,26 +2,13 @@ using Exceptions;
 using Models;
 public class AccountService
 {
-    List<Account> accounts = new List<Account>();
+    //List<Account> accounts = new List<Account>();
     private readonly IRepository<Account> _repository;
     public AccountService(IRepository<Account>repository)
     {
         _repository = repository;
     }
-    private Account FindAccount(Guid id)
-    {
-        var account = accounts.FirstOrDefault(x=>x.Id==id);
-        if(account==null)
-        {
-            throw new AccountNotFoundException("Account does not exist", id);
-        }
-        return account;
-    }
 
-    private void UpdateTransactionHistory(TransactionHistory transaction, Account account)
-    {
-        account.Transactions.Add(transaction);
-    }
     private decimal ValidateAccountCreationInput(AccountCreatorDTO accountCreatorDTO)
     {
         if(string.IsNullOrWhiteSpace(accountCreatorDTO.HolderName))
@@ -87,38 +74,18 @@ public class AccountService
 
     public Account GetAccountDetailsById(Guid id)
     {
-        var account = FindAccount(id);
+        var account = _repository.GetAccountDetailsById(id);
         return account;
     }
     //start here
 
     public IEnumerable<Account> GetAllAccounts()
     {
-        return accounts.OrderByDescending(x => x.Balance);
+        return _repository.GetAllAccounts();
     }
 
     public FinancialModel GetFinancialReport()
     {
-        if (accounts == null)
-        {
-            throw new NoAccountsException("No accounts exist in the system.");
-        }
-        var totalAccoutns = accounts.Count;
-        var savingsAccounts = accounts.Count(x => x.AccountType == AccountType.Savings);
-        var currentAccounts = accounts.Count(x => x.AccountType == AccountType.Current);
-        var totalBalance = accounts.Sum(x => x.Balance);
-        var highestBalanceId = accounts.MaxBy(x => x.Balance).Id;
-        var lowestBalanceId = accounts.MinBy(x => x.Balance).Id;
-
-        var totalTansactions = accounts.Sum(x => x.Transactions.Count);
-        return new FinancialModel { 
-            TotalAccounts = totalAccoutns,
-            SavingsAccounts = savingsAccounts,
-            CurrentAccounts = currentAccounts,
-            TotalBalance = totalBalance,
-            HighestBalanceId = highestBalanceId,
-            LowestBalanceId = lowestBalanceId,
-            TotalTransactions = totalTansactions
-        };
+        return _repository.GetFinancialReport();
     }
 }
