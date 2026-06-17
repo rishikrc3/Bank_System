@@ -1,46 +1,52 @@
-using System.Data.Common;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Models;
-public class FileRepository 
+using Interfaces;
+public class FileRepository <T>: IDisposable where T : IEntity 
 {
-    public void AddUserAccount(Account account)
+    private readonly string _filePath;
+    private List<T> _items;
+    private bool _disposed = false;
+    public void Dispose()
     {
-        var filePath = "data.json";
-        List<Account>accounts;
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        if(File.Exists(filePath))
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
         {
-            using FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-            if(fs.Length == 0)
-            {
-                accounts = new List<Account>();
-            }
-            else
-            {
-                accounts = JsonSerializer.Deserialize<List<Account>>(fs,options)?? new List<Account>();
-            }
+            return;
+        }
+        if (disposing)
+        {
+            SaveChanges();
+        }
+        _disposed = true;
+    }
+    public FileRepository(string filePath)
+    {
+        _filePath = filePath;
+        if (File.Exists(filePath))
+        {
+            string json = File.ReadAllText(filePath);
+            _items = JsonSerializer.Deserialize<List<T>>(json) ?? new List<T>();
         }
         else
         {
-            accounts = new List<Account>();
+            _items = new List<T>();
         }
-        accounts.Add(account);
-        using FileStream ws = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-        JsonSerializer.Serialize(ws, accounts,options);
     }
-    public void DeleteUserAccount(Guid id)
+    private void SaveChanges()
     {
-        throw new NotImplementedException();
+        string json = JsonSerializer.Serialize(_items);
+        File.WriteAllText(_filePath, json);
     }
-
-    public Account GetAccountDetailsById(Guid id)
+    public void Add(T item)
     {
-        throw new NotImplementedException();
+        _items.Add(item);
+        SaveChanges();
     }
-
-    public IEnumerable<Account> GetAllAccounts()
+    ~FileRepository()
     {
-        throw new NotImplementedException();
+        Dispose(false);
     }
 }
