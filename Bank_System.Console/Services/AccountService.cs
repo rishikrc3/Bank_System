@@ -1,5 +1,6 @@
 using Exceptions;
 using Models;
+using System.Runtime.CompilerServices;
 public class AccountService : IAccountService
 {
     private readonly IRepository<Account> _repository;
@@ -94,14 +95,18 @@ public class AccountService : IAccountService
         account.Transactions.Add(transaction);
         return account.Balance;
     }
-    public async Task<List<TransactionHistory>> GetTransactionHistoryAsync(Guid id, CancellationToken ct = default)
+    public async IAsyncEnumerable<TransactionHistory> GetTransactionHistoryAsync(Guid id, [EnumeratorCancellation] CancellationToken ct = default)
     {
         var account = await _repository.GetByIdAsync(id,ct);
         if (account == null)
         {
             throw new ArgumentException($"Account with ID {id} not found.", nameof(id));
         }
-        return account.Transactions;
+        foreach (var transaction in account.Transactions)
+        {
+            await Task.Delay(1000);
+            yield return transaction;
+        }
     }
     public async Task<Account> GetAccountDetailsByIdAsync(Guid id, CancellationToken ct = default)
     {

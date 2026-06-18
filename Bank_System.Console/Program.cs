@@ -44,11 +44,12 @@ class Bank_System
     }
     public static async Task Main(String []args)
     {
+        var tokenSource = new CancellationTokenSource();
         string path = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "accounts.json");
         IRepository<Account> repository = new FileRepository<Account>(path);
         IAccountService accountService = new AccountService(repository);
         Bank_System bank_System = new Bank_System();
-        await Task.WhenAll(bank_System.GetExchangeRateAsync(), bank_System.ViewAllAccountsAsync(accountService));
+        await Task.WhenAll(bank_System.GetExchangeRateAsync(), bank_System.ViewAllAccountsAsync(accountService, tokenSource.Token));
         while (true)
         {
             Console.WriteLine("1. Create account");
@@ -65,37 +66,42 @@ class Bank_System
                 Console.WriteLine("Invalid option, try again");
                 continue;
             }
-            if(num == 8) 
+            Console.CancelKeyPress += (sender, eventArgs) =>
+            {
+                Console.WriteLine("Cancelling...");
+                tokenSource.Cancel();
+                eventArgs.Cancel = true;
+            };
+            if (num == 8) 
                 break;
             switch(num)
             {
                 case 1:
-                    await bank_System.CreateUserAccountAsync(accountService);
+                    await bank_System.CreateUserAccountAsync(accountService, tokenSource.Token);
                     break;   
-
                 case 2:
-                    await bank_System.DepositMoneyAsync(accountService);
+                    await bank_System.DepositMoneyAsync(accountService, tokenSource.Token);
                     break;
 
                 case 3:
-                    await bank_System.WithdrawMoneyAsync(accountService);
+                    await bank_System.WithdrawMoneyAsync(accountService, tokenSource.Token);
                     break;    
                 case 4:
-                    await bank_System.ViewTransactionsAsync(accountService);
+                    await bank_System.ViewTransactionsAsync(accountService, tokenSource.Token);
                     break;
                 case 5:
-                    await bank_System.ViewAccountDetailsByIdAsync(accountService);
+                    await bank_System.ViewAccountDetailsByIdAsync(accountService, tokenSource.Token);
                     break;
                 case 6:
-                    await bank_System.ViewAllAccountsAsync(accountService);
+                    await bank_System.ViewAllAccountsAsync(accountService, tokenSource.Token);
                     break;
                 case 7:
-                    await bank_System.ViewFinancialModelAsync(accountService);
+                    await bank_System.ViewFinancialModelAsync(accountService, tokenSource.Token);
                     break;
             }
         }
     }
-    private async Task CreateUserAccountAsync(IAccountService accountService)
+    private async Task CreateUserAccountAsync(IAccountService accountService, CancellationToken cancellationToken)
     {
         try
         {
@@ -120,7 +126,7 @@ class Bank_System
                 Balance  = openingBalance,
                 AccountType = accountType
             };
-            var id = await accountService.CreateUserAccountAsync(accountDTO);
+            var id = await accountService.CreateUserAccountAsync(accountDTO, cancellationToken);
             Console.WriteLine($"Account created successfully. ID: {id}");        
         }
         catch(ArgumentNullException ex)
@@ -136,7 +142,7 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-    private async Task DepositMoneyAsync(IAccountService accountService)
+    private async Task DepositMoneyAsync(IAccountService accountService, CancellationToken cancellationToken)
     {
         try
         {
@@ -151,7 +157,7 @@ class Bank_System
                 Console.WriteLine("Invalid account ID format");
                 return;
             }
-            var updatedBalance = await accountService.IncreaseAccountBalanceAsync(parsedId, updateBalance);
+            var updatedBalance = await accountService.IncreaseAccountBalanceAsync(parsedId, updateBalance, cancellationToken);
             Console.WriteLine($"Balance after updating: {updatedBalance}");
         }
         catch(AccountNotFoundException ex)
@@ -167,7 +173,7 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-    private async Task WithdrawMoneyAsync(IAccountService accountService)
+    private async Task WithdrawMoneyAsync(IAccountService accountService, CancellationToken cancellationToken)
     {
         try
         {
@@ -181,7 +187,7 @@ class Bank_System
                 Console.WriteLine("Invalid account ID format");
                 return;
             }
-            var balanceAfterUpdating  = await accountService.DecreaseAccountBalanceAsync(parsedId, updateBalance);
+            var balanceAfterUpdating  = await accountService.DecreaseAccountBalanceAsync(parsedId, updateBalance, cancellationToken);
             Console.WriteLine($"Balance after updating: {balanceAfterUpdating}");
         }
         catch(AccountNotFoundException ex)
@@ -197,7 +203,7 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-    public async Task ViewTransactionsAsync(IAccountService accountService)
+    public async Task ViewTransactionsAsync(IAccountService accountService, CancellationToken cancellationToken)
     {
         try
         {
@@ -208,8 +214,7 @@ class Bank_System
                 Console.WriteLine("Invalid account ID format");
                 return;
             }
-            List<TransactionHistory> trasactions =await  accountService.GetTransactionHistoryAsync(parsedId);
-            foreach(var transaction in trasactions)
+            await foreach (var transaction in accountService.GetTransactionHistoryAsync(parsedId, cancellationToken))
             {
                 Console.WriteLine(transaction);
             }
@@ -227,7 +232,7 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-    public async Task ViewAccountDetailsByIdAsync(IAccountService accountService)
+    public async Task ViewAccountDetailsByIdAsync(IAccountService accountService, CancellationToken cancellationToken)
     {
         try 
         {
@@ -248,8 +253,7 @@ class Bank_System
             Console.WriteLine("Amount Withdrawn: " + account.Transactions.GetTotalWithdrawals());
             Console.WriteLine("Total Transactions: " + account.Transactions.Count);
             Console.WriteLine("Transaction History:");
-            List<TransactionHistory> trasactions = await accountService.GetTransactionHistoryAsync(parsedId);
-            foreach (var transaction in trasactions)
+            await foreach(var transaction in accountService.GetTransactionHistoryAsync(parsedId, cancellationToken))
             {
                 Console.WriteLine(transaction);
             }
@@ -267,11 +271,11 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-    public async Task ViewAllAccountsAsync(IAccountService accountService)
+    public async Task ViewAllAccountsAsync(IAccountService accountService, CancellationToken cancellationToken)
     {
         try
         { 
-            var accounts = await accountService.GetAllAccountsAsync();
+            var accounts = await accountService.GetAllAccountsAsync(cancellationToken);
             if (accounts == null)
             {
                 Console.WriteLine("There are no accounts available.");
@@ -288,11 +292,11 @@ class Bank_System
             Console.WriteLine($"Exception occurred: {ex.Message}");
         }
     }
-    public async Task ViewFinancialModelAsync(IAccountService accountService)
+    public async Task ViewFinancialModelAsync(IAccountService accountService, CancellationToken cancellationToken)
     {
         try
         {
-            var accountsData = await accountService.GetFinancialReportAsync();
+            var accountsData = await accountService.GetFinancialReportAsync(cancellationToken);
             Console.WriteLine("Financial Report:");
             var sb = new StringBuilder();
             sb.AppendLine($"Total accounts: {accountsData.TotalAccounts}");
