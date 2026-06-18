@@ -2,25 +2,30 @@
 using Extensions;
 using Models;
 using Repository;
+using System.Net.Http.Json;
 using System.Text;
 class Bank_System
 {
     public async Task GetExchangeRateAsync()
     {
-        var url = $"https://open.er-api.com/v6/latest/GBP";
+        const string url = $"https://open.er-api.com/v6/latest/GBP";
         try
         {
             using (var client = new HttpClient())
             {
-                var response = await client.GetAsync(url);
-                if(response.IsSuccessStatusCode)
+                GBPResponse response = await client.GetFromJsonAsync<GBPResponse>(url);
+                if(response == null)
                 {
-                    var json = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Exchange Rate Data: {json}");
+                    Console.WriteLine("Failed to retrieve exchange rate.");
+                    return;
+                }
+                if (response.Result=="success")
+                {
+                    Console.WriteLine($"Exchange rate for GBP to USD: {response.Rates["USD"]}");
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to fetch exchange rate. Status: {response.StatusCode}");
+                    Console.WriteLine("Failed to retrieve exchange rate.");
                 }
             }
         }
@@ -43,7 +48,7 @@ class Bank_System
         IRepository<Account> repository = new FileRepository<Account>(path);
         IAccountService accountService = new AccountService(repository);
         Bank_System bank_System = new Bank_System();
-        await Task.WhenAll(bank_System.GetExchangeRateAsync(), accountService.GetAllAccountsAsync());
+        await Task.WhenAll(bank_System.GetExchangeRateAsync(), bank_System.ViewAllAccountsAsync(accountService));
         while (true)
         {
             Console.WriteLine("1. Create account");
