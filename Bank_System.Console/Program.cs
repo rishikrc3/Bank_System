@@ -49,6 +49,12 @@ class Bank_System
         IRepository<Account> repository = new FileRepository<Account>(path);
         IAccountService accountService = new AccountService(repository);
         Bank_System bank_System = new Bank_System();
+        Console.CancelKeyPress += (sender, eventArgs) =>
+        {
+            Console.WriteLine("Cancelling...");
+            tokenSource.Cancel();
+            eventArgs.Cancel = true;
+        };
         await Task.WhenAll(bank_System.GetExchangeRateAsync(), bank_System.ViewAllAccountsAsync(accountService, tokenSource.Token));
         while (true)
         {
@@ -66,12 +72,7 @@ class Bank_System
                 Console.WriteLine("Invalid option, try again");
                 continue;
             }
-            Console.CancelKeyPress += (sender, eventArgs) =>
-            {
-                Console.WriteLine("Cancelling...");
-                tokenSource.Cancel();
-                eventArgs.Cancel = true;
-            };
+
             if (num == 8) 
                 break;
             switch(num)

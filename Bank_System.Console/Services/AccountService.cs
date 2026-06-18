@@ -75,9 +75,9 @@ public class AccountService : IAccountService
     public async Task<decimal> DecreaseAccountBalanceAsync(Guid id, string bal, CancellationToken ct = default)
     { 
         decimal balance = ValidateAccountBalanceUpdateDetials(id,bal);
-        var account = _repository.GetById(id);
+        var account = await _repository.GetByIdAsync(id);
         if (account == null)
-        {
+        {   
             throw new ArgumentException($"Account with ID {id} not found.", nameof(id));
         }
         if (account.Balance < balance)
