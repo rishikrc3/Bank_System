@@ -22,5 +22,29 @@
     "AccountType": 0,
     "DateCreated": "0001-01-01T00:00:00+00:00",
     "Transactions": []
+  },
+  {
+    "Id": "118c50a2-075a-4844-961e-3740a5c557f2",
+    "HolderName": "Rishik",
+    "Balance": 12312,
+    "AccountType": 0,
+    "DateCreated": "0001-01-01T00:00:00+00:00",
+    "Transactions": []
+  },
+  {
+    "Id": "d89002f6-866e-4ae4-afd2-6ecc40791a22",
+    "HolderName": "Rishik",
+    "Balance": 123121111,
+    "AccountType": 0,
+    "DateCreated": "0001-01-01T00:00:00+00:00",
+    "Transactions": []
+  },
+  {
+    "Id": "2a1243de-6022-4181-a36d-19ddeb69d6f7",
+    "HolderName": "Lojens",
+    "Balance": 12,
+    "AccountType": 0,
+    "DateCreated": "0001-01-01T00:00:00+00:00",
+    "Transactions": []
   }
 ]

@@ -1,6 +1,6 @@
 using Exceptions;
 using Models;
-public class AccountService
+public class AccountService : IAccountService
 {
     private readonly IRepository<Account> _repository;
     public AccountService(IRepository<Account>repository)
@@ -114,8 +114,6 @@ public class AccountService
         }
         return account;
     }
-    
-
     public IEnumerable<Account> GetAllAccounts()
     {
         return _repository.GetAll();

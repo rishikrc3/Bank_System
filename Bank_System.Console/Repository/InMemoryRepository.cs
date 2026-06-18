@@ -24,7 +24,6 @@ namespace Repository
         {
             return _items;
         }
-
         public T? GetById(Guid id)
         {
             return _items.FirstOrDefault(x => x.Id == id);
