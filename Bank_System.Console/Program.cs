@@ -5,13 +5,44 @@ using Repository;
 using System.Text;
 class Bank_System
 {
-    public static void Main(String []args)
+    public async Task<string> GetExchangeRateAsync()
+    {
+        var url = $"https://open.er-api.com/v6/latest/GBP";
+        try
+        {
+            using (var client = new HttpClient())
+            {
+                var response = await client.GetAsync(url);
+                if(response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    return json;
+                }
+                return $"Failed to fetch weather. Status: {response.StatusCode}";
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            return $"Request error: {ex.Message}";
+        }
+        catch (TaskCanceledException)
+        {
+            return "Request timed out. Please try again later.";
+        }
+        catch (Exception ex)
+        {
+            return $"An unexpected error occurred: {ex.Message}";
+        }
+    }
+    public static async Task Main(String []args)
     {
         string path = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "accounts.json");
         IRepository<Account> repository = new InMemoryRepository<Account>();
         IAccountService accountService = new AccountService(repository);
         Bank_System bank_System = new Bank_System();
-        while(true)
+        var json = await bank_System.GetExchangeRateAsync();
+        Console.WriteLine($"Exchange Rate Data: {json}");
+        while (true)
         {
             Console.WriteLine("1. Create account");
             Console.WriteLine("2. Deposit");
