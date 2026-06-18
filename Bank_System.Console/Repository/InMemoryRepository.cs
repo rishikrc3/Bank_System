@@ -28,5 +28,25 @@ namespace Repository
         {
             return _items.FirstOrDefault(x => x.Id == id);
         }
+        public async Task AddAsync(T entity, CancellationToken ct = default)
+        {
+            await Task.Delay(100);
+            _items.Add(entity);
+        }
+        public async Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        {
+            await Task.Delay(100);
+            return _items.FirstOrDefault(x => x.Id == id);
+        }
+        public async Task<IEnumerable<T>> GetAllAsync(CancellationToken ct = default)
+        {
+            await Task.Delay(100);
+            return _items;
+        }
+        public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+        {
+            await Task.Delay(100);
+            _items.RemoveAll(x => x.Id == id);
+        }
     }
 }

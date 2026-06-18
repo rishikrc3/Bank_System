@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Interfaces;
-public class FileRepository <T>: IDisposable, IAsyncDisposable, IRepository<T> where T : IEntity 
+public class FileRepository <T>: IDisposable, IAsyncDisposable where T : IEntity 
 {
     private readonly string _filePath;
     private List<T> _items;

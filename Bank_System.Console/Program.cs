@@ -8,7 +8,7 @@ class Bank_System
     public static void Main(String []args)
     {
         string path = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "accounts.json");
-        IRepository<Account> repository = new FileRepository<Account>(path);
+        IRepository<Account> repository = new InMemoryRepository<Account>();
         IAccountService accountService = new AccountService(repository);
         Bank_System bank_System = new Bank_System();
         while(true)
@@ -57,7 +57,7 @@ class Bank_System
             }
         }
     }
-    private void CreateUserAccount(IAccountService accountService)
+    private async Task CreateUserAccount(IAccountService accountService)
     {
         try
         {
@@ -82,7 +82,7 @@ class Bank_System
                 Balance  = openingBalance,
                 AccountType = accountType
             };
-            var id = accountService.CreateUserAccount(accountDTO);
+            var id = await accountService.CreateUserAccountAsync(accountDTO);
             Console.WriteLine($"Account created successfully. ID: {id}");        
         }
         catch(ArgumentNullException ex)
@@ -98,8 +98,7 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-
-    private void DepositMoney(IAccountService accountService)
+    private async Task DepositMoney(IAccountService accountService)
     {
         try
         {
@@ -114,7 +113,7 @@ class Bank_System
                 Console.WriteLine("Invalid account ID format");
                 return;
             }
-            var updatedBalance = accountService.IncreaseAccountBalance(parsedId, updateBalance);
+            var updatedBalance = await accountService.IncreaseAccountBalanceAsync(parsedId, updateBalance);
             Console.WriteLine($"Balance after updating: {updatedBalance}");
         }
         catch(AccountNotFoundException ex)
@@ -130,8 +129,7 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-
-    private void WithdrawMoney(IAccountService accountService)
+    private async Task WithdrawMoney(IAccountService accountService)
     {
         try
         {
@@ -145,7 +143,7 @@ class Bank_System
                 Console.WriteLine("Invalid account ID format");
                 return;
             }
-            var balanceAfterUpdating  = accountService.DecreaseAccountBalance(parsedId, updateBalance);
+            var balanceAfterUpdating  = await accountService.DecreaseAccountBalanceAsync(parsedId, updateBalance);
             Console.WriteLine($"Balance after updating: {balanceAfterUpdating}");
         }
         catch(AccountNotFoundException ex)
@@ -161,8 +159,7 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-
-    public void ViewTransactions(IAccountService accountService)
+    public async Task ViewTransactions(IAccountService accountService)
     {
         try
         {
@@ -173,7 +170,7 @@ class Bank_System
                 Console.WriteLine("Invalid account ID format");
                 return;
             }
-            List<TransactionHistory> trasactions = accountService.GetTransactionHistory(parsedId);
+            List<TransactionHistory> trasactions =await  accountService.GetTransactionHistoryAsync(parsedId);
             foreach(var transaction in trasactions)
             {
                 Console.WriteLine(transaction);
@@ -192,8 +189,7 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-
-    public void ViewAccountDetailsById(IAccountService accountService)
+    public async Task ViewAccountDetailsById(IAccountService accountService)
     {
         try 
         {
@@ -204,7 +200,7 @@ class Bank_System
                 Console.WriteLine("Invalid account ID format");
                 return;
             }
-            var account = accountService.GetAccountDetailsById(parsedId);
+            var account = await accountService.GetAccountDetailsByIdAsync(parsedId);
             Console.WriteLine("Account Details:");
             Console.WriteLine("Account Holder Name: " + account.HolderName);
             Console.WriteLine("Account Balance: " + account.Balance);
@@ -214,7 +210,7 @@ class Bank_System
             Console.WriteLine("Amount Withdrawn: " + account.Transactions.GetTotalWithdrawals());
             Console.WriteLine("Total Transactions: " + account.Transactions.Count);
             Console.WriteLine("Transaction History:");
-            List<TransactionHistory> trasactions = accountService.GetTransactionHistory(parsedId);
+            List<TransactionHistory> trasactions = await accountService.GetTransactionHistoryAsync(parsedId);
             foreach (var transaction in trasactions)
             {
                 Console.WriteLine(transaction);
@@ -233,11 +229,11 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-    public void ViewAllAccounts(IAccountService accountService)
+    public async Task ViewAllAccounts(IAccountService accountService)
     {
         try
         { 
-            var accounts = accountService.GetAllAccounts();
+            var accounts = await accountService.GetAllAccountsAsync();
             if (accounts == null)
             {
                 Console.WriteLine("There are no accounts available.");
@@ -254,12 +250,11 @@ class Bank_System
             Console.WriteLine($"Exception occurred: {ex.Message}");
         }
     }
-
-    public void ViewFinancialModel(IAccountService accountService)
+    public async Task ViewFinancialModel(IAccountService accountService)
     {
         try
         {
-            var accountsData = accountService.GetFinancialReport();
+            var accountsData = await accountService.GetFinancialReportAsync();
             Console.WriteLine("Financial Report:");
             var sb = new StringBuilder();
             sb.AppendLine($"Total accounts: {accountsData.TotalAccounts}");
