@@ -46,5 +46,13 @@
     "AccountType": 0,
     "DateCreated": "0001-01-01T00:00:00+00:00",
     "Transactions": []
+  },
+  {
+    "Id": "d2772805-23a1-4a8b-9e83-9d64e03beb52",
+    "HolderName": "Rishik",
+    "Balance": 123121,
+    "AccountType": 0,
+    "DateCreated": "0001-01-01T00:00:00+00:00",
+    "Transactions": []
   }
 ]

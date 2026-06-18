@@ -5,7 +5,7 @@ using Repository;
 using System.Text;
 class Bank_System
 {
-    public async Task<string> GetExchangeRateAsync()
+    public async Task GetExchangeRateAsync()
     {
         var url = $"https://open.er-api.com/v6/latest/GBP";
         try
@@ -16,32 +16,34 @@ class Bank_System
                 if(response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
-                    return json;
+                    Console.WriteLine($"Exchange Rate Data: {json}");
                 }
-                return $"Failed to fetch weather. Status: {response.StatusCode}";
+                else
+                {
+                    Console.WriteLine($"Failed to fetch exchange rate. Status: {response.StatusCode}");
+                }
             }
         }
         catch (HttpRequestException ex)
         {
-            return $"Request error: {ex.Message}";
+            Console.WriteLine($"Request error: {ex.Message}");
         }
         catch (TaskCanceledException)
         {
-            return "Request timed out. Please try again later.";
+            Console.WriteLine("Request timed out. Please try again later.");
         }
         catch (Exception ex)
         {
-            return $"An unexpected error occurred: {ex.Message}";
+            Console.WriteLine($"An unexpected error occurred: {ex.Message}");
         }
     }
     public static async Task Main(String []args)
     {
         string path = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "accounts.json");
-        IRepository<Account> repository = new InMemoryRepository<Account>();
+        IRepository<Account> repository = new FileRepository<Account>(path);
         IAccountService accountService = new AccountService(repository);
         Bank_System bank_System = new Bank_System();
-        var json = await bank_System.GetExchangeRateAsync();
-        Console.WriteLine($"Exchange Rate Data: {json}");
+        await Task.WhenAll(bank_System.GetExchangeRateAsync(), accountService.GetAllAccountsAsync());
         while (true)
         {
             Console.WriteLine("1. Create account");
@@ -63,32 +65,32 @@ class Bank_System
             switch(num)
             {
                 case 1:
-                    bank_System.CreateUserAccount(accountService);
+                    await bank_System.CreateUserAccountAsync(accountService);
                     break;   
 
                 case 2:
-                    bank_System.DepositMoney(accountService);
+                    await bank_System.DepositMoneyAsync(accountService);
                     break;
 
                 case 3:
-                    bank_System.WithdrawMoney(accountService);
+                    await bank_System.WithdrawMoneyAsync(accountService);
                     break;    
                 case 4:
-                    bank_System.ViewTransactions(accountService);
+                    await bank_System.ViewTransactionsAsync(accountService);
                     break;
                 case 5:
-                    bank_System.ViewAccountDetailsById(accountService);
+                    await bank_System.ViewAccountDetailsByIdAsync(accountService);
                     break;
                 case 6:
-                    bank_System.ViewAllAccounts(accountService);
+                    await bank_System.ViewAllAccountsAsync(accountService);
                     break;
                 case 7:
-                    bank_System.ViewFinancialModel(accountService);
+                    await bank_System.ViewFinancialModelAsync(accountService);
                     break;
             }
         }
     }
-    private async Task CreateUserAccount(IAccountService accountService)
+    private async Task CreateUserAccountAsync(IAccountService accountService)
     {
         try
         {
@@ -129,7 +131,7 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-    private async Task DepositMoney(IAccountService accountService)
+    private async Task DepositMoneyAsync(IAccountService accountService)
     {
         try
         {
@@ -160,7 +162,7 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-    private async Task WithdrawMoney(IAccountService accountService)
+    private async Task WithdrawMoneyAsync(IAccountService accountService)
     {
         try
         {
@@ -190,7 +192,7 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-    public async Task ViewTransactions(IAccountService accountService)
+    public async Task ViewTransactionsAsync(IAccountService accountService)
     {
         try
         {
@@ -220,7 +222,7 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-    public async Task ViewAccountDetailsById(IAccountService accountService)
+    public async Task ViewAccountDetailsByIdAsync(IAccountService accountService)
     {
         try 
         {
@@ -260,7 +262,7 @@ class Bank_System
             Console.WriteLine($"Exception occured: {ex.Message}");
         }
     }
-    public async Task ViewAllAccounts(IAccountService accountService)
+    public async Task ViewAllAccountsAsync(IAccountService accountService)
     {
         try
         { 
@@ -281,7 +283,7 @@ class Bank_System
             Console.WriteLine($"Exception occurred: {ex.Message}");
         }
     }
-    public async Task ViewFinancialModel(IAccountService accountService)
+    public async Task ViewFinancialModelAsync(IAccountService accountService)
     {
         try
         {

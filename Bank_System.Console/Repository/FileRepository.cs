@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Interfaces;
-public class FileRepository <T>: IDisposable, IAsyncDisposable where T : IEntity 
+public class FileRepository <T>: IDisposable, IAsyncDisposable, IRepository<T> where T : IEntity 
 {
     private readonly string _filePath;
     private List<T> _items;
@@ -92,6 +92,30 @@ public class FileRepository <T>: IDisposable, IAsyncDisposable where T : IEntity
         _items.RemoveAll(x => x.Id == id);
         SaveChanges();
     }
+
+    public async Task AddAsync(T entity, CancellationToken ct = default)
+    {
+        _items.Add(entity);
+        await SaveChangesAsync();
+    }
+
+    public Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    {
+       var item = _items.FirstOrDefault(x => x.Id == id);
+        return Task.FromResult(item);
+    }
+
+    public Task<IEnumerable<T>> GetAllAsync(CancellationToken ct = default)
+    {
+        return Task.FromResult(_items.AsEnumerable());
+    }
+
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        _items.RemoveAll(x => x.Id == id);
+        await SaveChangesAsync();
+    }
+
     ~FileRepository()
     {
         Dispose(false);
