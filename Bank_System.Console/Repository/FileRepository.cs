@@ -2,11 +2,13 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Interfaces;
-public class FileRepository <T>: IDisposable, IAsyncDisposable, IRepository<T> where T : IEntity 
+public class FileRepository <T>: IDisposable, IAsyncDisposable, IRepository<T> where T : class, IEntity 
 {
     private readonly string _filePath;
     private List<T> _items;
     private bool _disposed = false;
+    private WeakReference<T>? _cache = null;
+    private Guid _cachedId = Guid.Empty;
     public void Dispose()
     {
         Dispose(true);
@@ -100,7 +102,15 @@ public class FileRepository <T>: IDisposable, IAsyncDisposable, IRepository<T> w
 
     public Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-       var item = _items.FirstOrDefault(x => x.Id == id);
+        if (_cache != null && _cachedId == id && _cache.TryGetTarget(out T? cached))
+            return Task.FromResult<T?>(cached); 
+
+        var item = _items.FirstOrDefault(x => x.Id == id);
+        if (item != null)
+        {
+            _cache = new WeakReference<T>(item);
+            _cachedId = id;
+        }
         return Task.FromResult(item);
     }
 
@@ -112,6 +122,22 @@ public class FileRepository <T>: IDisposable, IAsyncDisposable, IRepository<T> w
     public async Task DeleteAsync(Guid id, CancellationToken ct = default)
     {
         _items.RemoveAll(x => x.Id == id);
+        await SaveChangesAsync(ct).ConfigureAwait(false);
+    }
+
+    public void Update(T entity)
+    {
+        var item = _items.FirstOrDefault(x => x.Id == entity.Id);
+        var index = _items.IndexOf(item);
+        _items[index] = entity;
+        SaveChanges();
+    }
+
+    public async Task UpdateAsync(T entity, CancellationToken ct = default)
+    {
+        var item = _items.FirstOrDefault(x => x.Id == entity.Id);
+        var index = _items.IndexOf(item);
+        _items[index] = entity;
         await SaveChangesAsync(ct).ConfigureAwait(false);
     }
 

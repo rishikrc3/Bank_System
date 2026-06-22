@@ -68,7 +68,7 @@ public class AccountService : IAccountService
         var account = await _repository.GetByIdAsync(id);
         if (account == null) 
         {
-            throw new ArgumentException($"Account with ID {id} not found.", nameof(id));
+            throw new AccountNotFoundException($"Account with ID {id} not found.", id);
         }
         await _semaphore.WaitAsync(ct);
         try
@@ -87,6 +87,7 @@ public class AccountService : IAccountService
             Balance = account.Balance
         };
         account.Transactions.Add(transaction);
+        await _repository.UpdateAsync(account,ct);
         _transactionEvent.OnTransactionOccurred(account.Id, balance, TransactionType.Deposit, account.Balance);
         return account.Balance;
     }
@@ -97,7 +98,7 @@ public class AccountService : IAccountService
         var account = await _repository.GetByIdAsync(id);
         if (account == null)
         {   
-            throw new ArgumentException($"Account with ID {id} not found.", nameof(id));
+            throw new AccountNotFoundException($"Account with ID {id} not found.", id);
         }
         if (account.Balance < balance)
         {
@@ -120,6 +121,7 @@ public class AccountService : IAccountService
             Balance = account.Balance
         };
         account.Transactions.Add(transaction);
+        await _repository.UpdateAsync(account,ct);
         _transactionEvent.OnTransactionOccurred(account.Id, balance, TransactionType.Withdraw, account.Balance);
         if(account.Balance < 100)
         {
@@ -132,7 +134,7 @@ public class AccountService : IAccountService
         var account = await _repository.GetByIdAsync(id,ct);
         if (account == null)
         {
-            throw new ArgumentException($"Account with ID {id} not found.", nameof(id));
+            throw new AccountNotFoundException($"Account with ID {id} not found.", id);
         }
         foreach (var transaction in account.Transactions)
         {
@@ -145,7 +147,7 @@ public class AccountService : IAccountService
         var account = await _repository.GetByIdAsync(id, ct);
         if (account == null)
         {
-            throw new ArgumentException($"Account with ID {id} not found.", nameof(id));
+            throw new AccountNotFoundException($"Account with ID {id} not found.", id);
         }
         return account;
     }
@@ -159,7 +161,7 @@ public class AccountService : IAccountService
         var accountsList = accounts.ToList();
         if (accountsList == null || accountsList.Count == 0)
         {
-            throw new ArgumentException($"No accounts found.");
+            throw new NoAccountsException($"No accounts found.");
         }
         var totalAccoutns = accountsList.Count;
         var savingsAccounts = accountsList.Count(x => x.AccountType == AccountType.Savings);

@@ -48,5 +48,20 @@ namespace Repository
             await Task.Delay(100);
             _items.RemoveAll(x => x.Id == id);
         }
+
+        public void Update(T entity)
+        {
+           var item = _items.FirstOrDefault(x => x.Id == entity.Id);
+           var index = _items.IndexOf(item);
+           _items[index] = entity; 
+        }
+
+        public async Task UpdateAsync(T entity, CancellationToken ct = default)
+        {
+            await Task.Delay(100);
+            var item = _items.FirstOrDefault(x => x.Id == entity.Id);
+            var index = _items.IndexOf(item);
+            _items[index] = entity;
+        }
     }
 }
