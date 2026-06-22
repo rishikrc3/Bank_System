@@ -9,6 +9,7 @@ public class AccountService : IAccountService
     private readonly TransactionEvent _transactionEvent;
     private readonly LowBalanceEvent _lowBalanceEvent;
     private readonly Action<string> _logger;
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
     public AccountService(IRepository<Account>repository, TransactionEvent transactionEvent, LowBalanceEvent lowBalanceEvent, Action<string> logger)
     {
         _repository = repository;
@@ -69,7 +70,15 @@ public class AccountService : IAccountService
         {
             throw new AccountNotFoundException($"Account with ID {id} not found.", id);
         }
-        account.Balance += balance;
+        await _semaphore.WaitAsync(ct);
+        try
+        {
+            account.Balance += balance;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
         TransactionHistory transaction = new TransactionHistory
         {
             Amount = balance,
@@ -94,7 +103,15 @@ public class AccountService : IAccountService
         {
             throw new AccountBalanceException($"Insufficient funds. Shortfall: {balance - account.Balance}", account.Balance.ToString());
         }
-        account.Balance -= balance;
+        await _semaphore.WaitAsync(ct);
+        try
+        {
+            account.Balance -= balance;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
         TransactionHistory transaction = new TransactionHistory
         {
             Amount = balance,

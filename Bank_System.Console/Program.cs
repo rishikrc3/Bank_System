@@ -3,11 +3,35 @@ using Events;
 using Exceptions;
 using Extensions;
 using Models;
-using Repository;
 using System.Net.Http.Json;
 using System.Text;
 class Bank_System
 {
+    public async Task TestConcurrentDeposits(IAccountService accountService, CancellationToken ct)
+    {
+        // create a fresh account with balance starting near 0
+        AccountCreatorDTO dto = new AccountCreatorDTO
+        {
+            HolderName = "ConcurrencyTest",
+            Balance = "1",
+            AccountType = AccountType.Current
+        };
+        Guid accountId = await accountService.CreateUserAccountAsync(dto, ct);
+
+        // fire 20 concurrent deposits of £10 each at the SAME account
+        var tasks = new List<Task>();
+        for(int i = 0; i < 20; i++)
+        {
+            tasks.Add(accountService.IncreaseAccountBalanceAsync(accountId, "10", ct));
+        }
+
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        await Task.WhenAll(tasks);
+        sw.Stop();
+
+        var account = await accountService.GetAccountDetailsByIdAsync(accountId, ct);
+        Console.WriteLine($"Expected balance: 201, Actual balance: {account.Balance}, Time taken: {sw.ElapsedMilliseconds}ms");
+    }
     public async Task GetExchangeRateAsync()
     {
         const string url = $"https://open.er-api.com/v6/latest/GBP";
@@ -75,6 +99,7 @@ class Bank_System
         {
             Console.WriteLine($"Low balance detected: Account ID: {eventArgs.Id}, Balance: {eventArgs.Balance}");
         };
+        await bank_System.TestConcurrentDeposits(accountService, tokenSource.Token);
         //await Task.WhenAll(bank_System.GetExchangeRateAsync(), bank_System.ViewAllAccountsAsync(accountService, tokenSource.Token));
         while (true)
         {
