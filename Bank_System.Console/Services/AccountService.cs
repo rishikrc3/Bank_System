@@ -87,6 +87,7 @@ public class AccountService : IAccountService
             Balance = account.Balance
         };
         account.Transactions.Add(transaction);
+        await _repository.UpdateAsync(account,ct);
         _transactionEvent.OnTransactionOccurred(account.Id, balance, TransactionType.Deposit, account.Balance);
         return account.Balance;
     }
@@ -120,6 +121,7 @@ public class AccountService : IAccountService
             Balance = account.Balance
         };
         account.Transactions.Add(transaction);
+        await _repository.UpdateAsync(account,ct);
         _transactionEvent.OnTransactionOccurred(account.Id, balance, TransactionType.Withdraw, account.Balance);
         if(account.Balance < 100)
         {

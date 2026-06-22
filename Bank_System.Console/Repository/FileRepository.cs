@@ -115,6 +115,22 @@ public class FileRepository <T>: IDisposable, IAsyncDisposable, IRepository<T> w
         await SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
+    public void Update(T entity)
+    {
+        var item = _items.FirstOrDefault(x => x.Id == entity.Id);
+        var index = _items.IndexOf(item);
+        _items[index] = entity;
+        SaveChanges();
+    }
+
+    public async Task UpdateAsync(T entity, CancellationToken ct = default)
+    {
+        var item = _items.FirstOrDefault(x => x.Id == entity.Id);
+        var index = _items.IndexOf(item);
+        _items[index] = entity;
+        await SaveChangesAsync(ct).ConfigureAwait(false);
+    }
+
     ~FileRepository()
     {
         Dispose(false);

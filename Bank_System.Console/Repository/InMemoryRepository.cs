@@ -52,13 +52,16 @@ namespace Repository
         public void Update(T entity)
         {
            var item = _items.FirstOrDefault(x => x.Id == entity.Id);
-           _items.Remove(item);
-                _items.Add(entity);
+           var index = _items.IndexOf(item);
+           _items[index] = entity; 
         }
 
-        public Task UpdateAsync(T entity, CancellationToken ct = default)
+        public async Task UpdateAsync(T entity, CancellationToken ct = default)
         {
-            throw new NotImplementedException();
+            await Task.Delay(100);
+            var item = _items.FirstOrDefault(x => x.Id == entity.Id);
+            var index = _items.IndexOf(item);
+            _items[index] = entity;
         }
     }
 }
